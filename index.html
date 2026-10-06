@@ -15,7 +15,7 @@
     />
     <title>LeetCode Randomizer</title>
     <link rel="stylesheet" href="style.css" />
-    <script src="script.js" defer></script>
+    <script src="script.js?v=2" defer></script>
   </head>
   <body>
     <main class="app-shell">
@@ -34,6 +34,9 @@
             Generate Random Problem
           </button>
           <p class="keyboard-hint">Press <kbd>G</kbd> when you are not typing</p>
+          <button class="restart-button" id="restartSessionButton" type="button">
+            Restart Session
+          </button>
         </div>
 
         <div class="problem-reveal" id="problemReveal" aria-live="polite" aria-atomic="true">
@@ -43,13 +46,18 @@
           </p>
           <div class="problem-reveal__result" id="randomResult" hidden>
             <h2 id="randomProblemName"></h2>
-            <a
-              class="button button--secondary"
-              id="randomProblemLink"
-              href="#"
-              target="_blank"
-              rel="noopener noreferrer"
-            >Open Problem</a>
+            <div class="problem-reveal__actions">
+              <a
+                class="button button--secondary"
+                id="randomProblemLink"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+              >Open Problem</a>
+              <button class="button completion-button" id="completeProblemButton" type="button">
+                Complete
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -138,6 +146,7 @@
                 <tr>
                   <th scope="col">Problem</th>
                   <th scope="col">Link</th>
+                  <th scope="col">Session</th>
                   <th scope="col" class="action-column">Action</th>
                 </tr>
               </thead>
@@ -148,7 +157,7 @@
       </section>
 
       <footer>
-        <p>Stored on this device. Every saved problem has an equal chance.</p>
+        <p>Completed problems stay saved and return when you restart the session.</p>
       </footer>
     </main>
   </body>

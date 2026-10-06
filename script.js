@@ -1,7 +1,10 @@
 const STORAGE_KEY = "leetcodeProblems";
+const SESSION_STORAGE_KEY = "leetcodeCompletedProblemKeys";
 
 let problems = [];
+let completedProblemKeys = new Set();
 let previousProblemKey = null;
+let currentProblemKey = null;
 
 const elements = {
   form: document.querySelector("#problemForm"),
@@ -16,6 +19,8 @@ const elements = {
   randomResult: document.querySelector("#randomResult"),
   randomProblemName: document.querySelector("#randomProblemName"),
   randomProblemLink: document.querySelector("#randomProblemLink"),
+  completeProblemButton: document.querySelector("#completeProblemButton"),
+  restartSessionButton: document.querySelector("#restartSessionButton"),
   importButton: document.querySelector("#importButton"),
   exportButton: document.querySelector("#exportButton"),
   clearButton: document.querySelector("#clearButton"),
@@ -65,8 +70,44 @@ function saveProblems() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(problems));
 }
 
+function loadCompletedProblems() {
+  const savedKeys = sessionStorage.getItem(SESSION_STORAGE_KEY);
+  const currentKeys = new Set(problems.map(problemKey));
+
+  if (!savedKeys) {
+    completedProblemKeys = new Set();
+    return;
+  }
+
+  try {
+    const parsedKeys = JSON.parse(savedKeys);
+    completedProblemKeys = new Set(
+      Array.isArray(parsedKeys)
+        ? parsedKeys.filter((key) => typeof key === "string" && currentKeys.has(key))
+        : [],
+    );
+  } catch {
+    completedProblemKeys = new Set();
+  }
+}
+
+function saveCompletedProblems() {
+  if (completedProblemKeys.size === 0) {
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    return;
+  }
+
+  sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify([...completedProblemKeys]));
+}
+
+function isProblemCompleted(problem) {
+  return completedProblemKeys.has(problemKey(problem));
+}
+
 function createProblemRow(problem, index) {
   const row = document.createElement("tr");
+  const completed = isProblemCompleted(problem);
+  row.classList.toggle("is-completed", completed);
 
   const nameCell = document.createElement("td");
   nameCell.className = "problem-name";
@@ -82,6 +123,21 @@ function createProblemRow(problem, index) {
   link.setAttribute("aria-label", `Open ${problem.problem} in a new tab`);
   linkCell.append(link);
 
+  const sessionCell = document.createElement("td");
+  const completionButton = document.createElement("button");
+  completionButton.className = "completion-button completion-button--table";
+  completionButton.type = "button";
+  completionButton.dataset.index = index;
+  completionButton.setAttribute("aria-pressed", String(completed));
+  completionButton.setAttribute(
+    "aria-label",
+    completed
+      ? `Mark ${problem.problem} available in this session`
+      : `Mark ${problem.problem} completed for this session`,
+  );
+  completionButton.textContent = completed ? "Completed" : "Complete";
+  sessionCell.append(completionButton);
+
   const actionCell = document.createElement("td");
   const deleteButton = document.createElement("button");
   deleteButton.className = "delete-button";
@@ -91,8 +147,17 @@ function createProblemRow(problem, index) {
   deleteButton.setAttribute("aria-label", `Delete ${problem.problem}`);
   actionCell.append(deleteButton);
 
-  row.append(nameCell, linkCell, actionCell);
+  row.append(nameCell, linkCell, sessionCell, actionCell);
   return row;
+}
+
+function updateCurrentProblemControls() {
+  if (!currentProblemKey) return;
+
+  const completed = completedProblemKeys.has(currentProblemKey);
+  elements.completeProblemButton.textContent = completed ? "Completed" : "Complete";
+  elements.completeProblemButton.disabled = completed;
+  elements.completeProblemButton.setAttribute("aria-pressed", String(completed));
 }
 
 function renderProblems() {
@@ -102,7 +167,7 @@ function renderProblems() {
     const row = document.createElement("tr");
     row.className = "empty-row";
     const cell = document.createElement("td");
-    cell.colSpan = 3;
+    cell.colSpan = 4;
     cell.textContent = "No problems saved yet.";
     row.append(cell);
     elements.tableBody.append(row);
@@ -112,8 +177,11 @@ function renderProblems() {
     });
   }
 
-  const countLabel = `${problems.length} ${problems.length === 1 ? "problem" : "problems"}`;
-  elements.problemCount.textContent = countLabel;
+  const completedCount = problems.filter(isProblemCompleted).length;
+  const availableCount = problems.length - completedCount;
+  elements.problemCount.textContent = `${availableCount} available · ${completedCount} completed`;
+  elements.restartSessionButton.disabled = completedCount === 0;
+  updateCurrentProblemControls();
 }
 
 function addProblem(problemName, problemLink) {
@@ -160,6 +228,17 @@ function deleteProblem(index) {
   }
 
   const [deletedProblem] = problems.splice(index, 1);
+  const deletedKey = problemKey(deletedProblem);
+  completedProblemKeys.delete(deletedKey);
+  saveCompletedProblems();
+
+  if (currentProblemKey === deletedKey) {
+    currentProblemKey = null;
+    elements.randomResult.hidden = true;
+    elements.randomEmptyMessage.hidden = false;
+    elements.randomEmptyMessage.textContent = "Generate another problem to continue your session.";
+  }
+
   saveProblems();
   renderProblems();
   elements.bankMessage.textContent = `${deletedProblem.problem} was deleted.`;
@@ -167,11 +246,13 @@ function deleteProblem(index) {
 }
 
 function showRandomProblem(problem) {
+  currentProblemKey = problemKey(problem);
   elements.randomProblemName.textContent = problem.problem;
   elements.randomProblemLink.href = problem.link;
   elements.randomProblemLink.setAttribute("aria-label", `Open ${problem.problem} in a new tab`);
   elements.randomEmptyMessage.hidden = true;
   elements.randomResult.hidden = false;
+  updateCurrentProblemControls();
 }
 
 function generateRandomProblem() {
@@ -183,17 +264,67 @@ function generateRandomProblem() {
     return null;
   }
 
+  const availableProblems = problems.filter((problem) => !isProblemCompleted(problem));
+
+  if (availableProblems.length === 0) {
+    currentProblemKey = null;
+    elements.randomResult.hidden = true;
+    elements.randomEmptyMessage.hidden = false;
+    elements.randomEmptyMessage.textContent =
+      "Every problem is completed for this session. Restart the session to roll them again.";
+    return null;
+  }
+
   let selectedProblem;
 
   // Re-roll only when an alternative exists and the last result is selected again.
   do {
-    const randomIndex = Math.floor(Math.random() * problems.length);
-    selectedProblem = problems[randomIndex];
-  } while (problems.length > 1 && problemKey(selectedProblem) === previousProblemKey);
+    const randomIndex = Math.floor(Math.random() * availableProblems.length);
+    selectedProblem = availableProblems[randomIndex];
+  } while (availableProblems.length > 1 && problemKey(selectedProblem) === previousProblemKey);
 
   previousProblemKey = problemKey(selectedProblem);
   showRandomProblem(selectedProblem);
   return selectedProblem;
+}
+
+function setProblemCompleted(index, completed) {
+  if (!Number.isInteger(index) || index < 0 || index >= problems.length) {
+    throw new Error("That problem could not be found.");
+  }
+
+  const problem = problems[index];
+  const key = problemKey(problem);
+
+  if (completed) {
+    completedProblemKeys.add(key);
+  } else {
+    completedProblemKeys.delete(key);
+  }
+
+  saveCompletedProblems();
+  renderProblems();
+  elements.bankMessage.textContent = completed
+    ? `${problem.problem} is completed for this session and will not be rolled again.`
+    : `${problem.problem} is available in this session again.`;
+  return problem;
+}
+
+function completeCurrentProblem() {
+  if (!currentProblemKey || completedProblemKeys.has(currentProblemKey)) return null;
+
+  const index = problems.findIndex((problem) => problemKey(problem) === currentProblemKey);
+  if (index < 0) return null;
+
+  return setProblemCompleted(index, true);
+}
+
+function restartSession() {
+  completedProblemKeys.clear();
+  previousProblemKey = null;
+  saveCompletedProblems();
+  renderProblems();
+  elements.bankMessage.textContent = "Session restarted. Every saved problem can be rolled again.";
 }
 
 function escapeCSVValue(value) {
@@ -335,8 +466,11 @@ function clearProblems() {
   }
 
   problems = [];
+  completedProblemKeys.clear();
   previousProblemKey = null;
+  currentProblemKey = null;
   saveProblems();
+  saveCompletedProblems();
   renderProblems();
   elements.randomResult.hidden = true;
   elements.randomEmptyMessage.hidden = false;
@@ -364,7 +498,15 @@ function registerWebMCPTools() {
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, untrustedContentHint: true },
     execute() {
-      return { count: problems.length, problems: problems.map((problem) => ({ ...problem })) };
+      return {
+        count: problems.length,
+        availableCount: problems.filter((problem) => !isProblemCompleted(problem)).length,
+        completedCount: problems.filter(isProblemCompleted).length,
+        problems: problems.map((problem) => ({
+          ...problem,
+          completedThisSession: isProblemCompleted(problem),
+        })),
+      };
     },
   });
 
@@ -397,7 +539,13 @@ function registerWebMCPTools() {
     annotations: { readOnlyHint: false, untrustedContentHint: true },
     execute() {
       const selected = generateRandomProblem();
-      if (!selected) throw new Error("Add at least one problem before generating.");
+      if (!selected) {
+        throw new Error(
+          problems.length
+            ? "Every problem is completed for this session. Restart the session to continue."
+            : "Add at least one problem before generating.",
+        );
+      }
       return { problem: selected.problem, link: selected.link };
     },
   });
@@ -427,6 +575,17 @@ function registerWebMCPTools() {
 }
 
 function handleTableClick(event) {
+  const completionButton = event.target.closest(".completion-button--table");
+  if (completionButton) {
+    try {
+      const index = Number(completionButton.dataset.index);
+      setProblemCompleted(index, completionButton.getAttribute("aria-pressed") !== "true");
+    } catch (error) {
+      elements.bankMessage.textContent = error.message;
+    }
+    return;
+  }
+
   const deleteButton = event.target.closest(".delete-button");
   if (!deleteButton) return;
 
@@ -448,12 +607,15 @@ function handleKeyboardShortcut(event) {
 
 function initializeApp() {
   loadProblems();
+  loadCompletedProblems();
   renderProblems();
   registerWebMCPTools();
 
   elements.form.addEventListener("submit", handleAddProblem);
   elements.tableBody.addEventListener("click", handleTableClick);
   elements.generateButton.addEventListener("click", generateRandomProblem);
+  elements.completeProblemButton.addEventListener("click", completeCurrentProblem);
+  elements.restartSessionButton.addEventListener("click", restartSession);
   elements.importButton.addEventListener("click", () => elements.csvFileInput.click());
   elements.csvFileInput.addEventListener("change", () => importCSV(elements.csvFileInput.files[0]));
   elements.exportButton.addEventListener("click", exportCSV);
