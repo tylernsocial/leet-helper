@@ -36,11 +36,16 @@ body {
     sans-serif;
   font-size: 1rem;
   line-height: 1.5;
+  text-transform: lowercase;
 }
 
 button,
 input {
   font: inherit;
+}
+
+button {
+  text-transform: lowercase;
 }
 
 button,
@@ -129,7 +134,7 @@ a {
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.13em;
-  text-transform: uppercase;
+  text-transform: lowercase;
 }
 
 h1,
@@ -264,7 +269,7 @@ kbd {
   font-family: "SFMono-Regular", Consolas, monospace;
   font-size: 0.75rem;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
+  text-transform: lowercase;
 }
 
 .problem-reveal__empty {
@@ -469,7 +474,7 @@ th {
   font-size: 0.72rem;
   font-weight: 650;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: lowercase;
 }
 
 th:first-child,
