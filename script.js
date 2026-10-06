@@ -10,7 +10,6 @@ const elements = {
   formMessage: document.querySelector("#formMessage"),
   tableBody: document.querySelector("#problemTableBody"),
   problemCount: document.querySelector("#problemCount"),
-  headerProblemCount: document.querySelector("#headerProblemCount"),
   bankMessage: document.querySelector("#bankMessage"),
   generateButton: document.querySelector("#generateButton"),
   randomEmptyMessage: document.querySelector("#randomEmptyMessage"),
@@ -115,7 +114,6 @@ function renderProblems() {
 
   const countLabel = `${problems.length} ${problems.length === 1 ? "problem" : "problems"}`;
   elements.problemCount.textContent = countLabel;
-  elements.headerProblemCount.textContent = problems.length;
 }
 
 function addProblem(problemName, problemLink) {
