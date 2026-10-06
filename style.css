@@ -363,6 +363,88 @@ input::placeholder {
   border-bottom: 1px solid var(--border);
 }
 
+.import-guide {
+  position: relative;
+}
+
+.csv-help {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 12px);
+  left: 0;
+  width: min(430px, calc(100vw - 52px));
+  padding: 18px;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  background: #0d1118;
+  border: 1px solid var(--border-bright);
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgb(0 0 0 / 45%);
+  color: var(--muted);
+  font-size: 0.82rem;
+  pointer-events: none;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease,
+    visibility 160ms ease;
+}
+
+.csv-help::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 24px;
+  border: 7px solid transparent;
+  border-bottom-color: var(--border-bright);
+}
+
+.import-guide:hover .csv-help,
+.import-guide:focus-within .csv-help {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.csv-help__title {
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 750;
+}
+
+.csv-help ol {
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+
+.csv-help li + li {
+  margin-top: 5px;
+}
+
+.csv-help strong {
+  color: #dfe4ee;
+}
+
+.csv-help pre {
+  max-width: 100%;
+  margin: 0 0 10px;
+  padding: 11px 12px;
+  overflow-x: auto;
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: #dfe4ee;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.csv-help__note {
+  margin: 0;
+}
+
 .table-wrap {
   overflow-x: auto;
 }
@@ -513,6 +595,15 @@ footer p {
   .bank-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+
+  .import-guide,
+  .import-guide .button {
+    width: 100%;
+  }
+
+  .csv-help {
+    width: min(430px, calc(100vw - 42px));
   }
 
   .button--danger {

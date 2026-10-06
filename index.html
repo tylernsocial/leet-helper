@@ -114,7 +114,29 @@
 
           <div class="bank-actions" aria-label="Problem bank actions">
             <input id="csvFileInput" type="file" accept=".csv,text/csv" hidden />
-            <button class="button button--quiet" id="importButton" type="button">Import CSV</button>
+            <div class="import-guide">
+              <button
+                class="button button--quiet"
+                id="importButton"
+                type="button"
+                aria-describedby="csvImportHelp"
+              >
+                Import CSV
+              </button>
+              <div class="csv-help" id="csvImportHelp" role="tooltip">
+                <p class="csv-help__title">How to format your CSV</p>
+                <ol>
+                  <li>Use exactly two columns: <strong>Problem</strong> and <strong>Link</strong>.</li>
+                  <li>Put the headers on the first row, then add one problem per row.</li>
+                  <li>Links must begin with <strong>http://</strong> or <strong>https://</strong>.</li>
+                </ol>
+                <pre aria-label="CSV format example">Problem,Link
+"Two Sum",https://leetcode.com/problems/two-sum/</pre>
+                <p class="csv-help__note">
+                  Tip: wrap a value in double quotes if it contains a comma. Invalid and duplicate rows are skipped.
+                </p>
+              </div>
+            </div>
             <button class="button button--quiet" id="exportButton" type="button">Export CSV</button>
             <button class="button button--danger" id="clearButton" type="button">Clear All</button>
           </div>
