@@ -1,10 +1,10 @@
 :root {
-  color-scheme: light;
-  --paper: #fbfaf6;
-  --surface: #ffffff;
-  --ink: #000000;
-  --wash: rgb(0 0 0 / 4%);
-  --focus: #000000;
+  color-scheme: dark;
+  --paper: #2056bd;
+  --surface: #2056bd;
+  --ink: #ffffff;
+  --wash: rgb(255 255 255 / 7%);
+  --focus: #ffffff;
 }
 
 * {
