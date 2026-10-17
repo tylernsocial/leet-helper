@@ -532,6 +532,10 @@ tr.is-completed .problem-name {
 }
 
 footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
   padding: 18px 0 0;
   color: var(--ink);
   font-size: 0.625rem;
@@ -540,6 +544,34 @@ footer {
 
 footer p {
   margin: 0;
+}
+
+.github-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--ink);
+  border-radius: 50%;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.github-link svg {
+  width: 22px;
+  height: 22px;
+}
+
+.github-link:hover {
+  background: var(--ink);
+  color: var(--paper);
+  transform: translateY(-2px);
+}
+
+.github-link:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
 }
 
 @media (max-width: 760px) {
